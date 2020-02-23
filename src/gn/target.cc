@@ -315,6 +315,8 @@ const char* Target::GetStringForOutputType(OutputType type) {
       return functions::kRustLibrary;
     case RUST_PROC_MACRO:
       return functions::kRustProcMacro;
+    case CSHARP_ASSEMBLY:
+      return functions::kCSharpAssembly;
     default:
       return "";
   }
@@ -407,7 +409,8 @@ bool Target::IsBinary() const {
   return output_type_ == EXECUTABLE || output_type_ == SHARED_LIBRARY ||
          output_type_ == LOADABLE_MODULE || output_type_ == STATIC_LIBRARY ||
          output_type_ == SOURCE_SET || output_type_ == RUST_LIBRARY ||
-         output_type_ == RUST_PROC_MACRO;
+         output_type_ == RUST_PROC_MACRO ||
+         output_type_ == CSHARP_ASSEMBLY;
 }
 
 bool Target::IsLinkable() const {
@@ -420,6 +423,7 @@ bool Target::IsFinal() const {
          output_type_ == LOADABLE_MODULE || output_type_ == ACTION ||
          output_type_ == ACTION_FOREACH || output_type_ == COPY_FILES ||
          output_type_ == CREATE_BUNDLE || output_type_ == RUST_PROC_MACRO ||
+         output_type_ == CSHARP_ASSEMBLY ||
          (output_type_ == STATIC_LIBRARY &&
           (complete_static_lib_ ||
            // Rust static libraries may be used from C/C++ code and therefore
@@ -672,6 +676,7 @@ bool Target::FillOutputFiles(Err* err) {
     }
     case EXECUTABLE:
     case LOADABLE_MODULE:
+    case CSHARP_ASSEMBLY:
       // Executables and loadable modules don't get linked to, but the first
       // output is used for dependency management.
       CHECK_GE(tool->outputs().list().size(), 1u);

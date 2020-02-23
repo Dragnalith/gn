@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef TOOLS_GN_RUST_TOOL_H_
-#define TOOLS_GN_RUST_TOOL_H_
+#ifndef TOOLS_GN_CSHARP_TOOL_H_
+#define TOOLS_GN_CSHARP_TOOL_H_
 
 #include <string>
 
@@ -18,6 +18,31 @@
 #include "gn/target.h"
 #include "gn/tool.h"
 
+class CSharpTool : public Tool {
+ public:
+   explicit CSharpTool(const char* n);
+  ~CSharpTool();
+  
+  static const char* kMSBuild;
+  static const char* kGenerator;
+  CSharpTool* AsCSharp() override;
+  const CSharpTool* AsCSharp() const override;
+
+  bool InitTool(Scope* block_scope, Toolchain* toolchain, Err* err);
+  bool ValidateName(const char* name) const override;
+  void SetComplete() override;
+  bool ValidateSubstitution(const Substitution* sub_type) const override;
+
+private:
+  bool ReadOutputsPatternList(Scope* scope,
+                              const char* var,
+                              SubstitutionList* field,
+                              Err* err);
+  DISALLOW_COPY_AND_ASSIGN(CSharpTool);
+};
+
+#if 0
+
 class RustTool : public Tool {
  public:
   // Rust tools
@@ -27,7 +52,7 @@ class RustTool : public Tool {
   static const char* kRsToolMacro;
   static const char* kRsToolRlib;
   static const char* kRsToolStaticlib;
-  
+
   explicit RustTool(const char* n);
   ~RustTool();
 
@@ -51,4 +76,5 @@ class RustTool : public Tool {
   DISALLOW_COPY_AND_ASSIGN(RustTool);
 };
 
-#endif  // TOOLS_GN_RUST_TOOL_H_
+#endif
+#endif  // TOOLS_GN_CSHARP_TOOL_H_

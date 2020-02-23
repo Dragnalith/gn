@@ -277,6 +277,15 @@ Value RunRebasePath(Scope* scope,
                     const std::vector<Value>& args,
                     Err* err);
 
+extern const char kCSharpAssembly[];
+extern const char kCSharpAssembly_HelpShort[];
+extern const char kCSharpAssembly_Help[];
+Value RunCSharpAssembly(Scope* scope,
+                     const FunctionCallNode* function,
+                     const std::vector<Value>& args,
+                     BlockNode* block,
+                     Err* err);
+
 extern const char kRustLibrary[];
 extern const char kRustLibrary_HelpShort[];
 extern const char kRustLibrary_Help[];

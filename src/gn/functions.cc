@@ -1453,6 +1453,7 @@ struct FunctionInfoInitializer {
     INSERT_FUNCTION(GeneratedFile, true)
     INSERT_FUNCTION(RustLibrary, true)
     INSERT_FUNCTION(RustProcMacro, true)
+    INSERT_FUNCTION(CSharpAssembly, true)
 
     INSERT_FUNCTION(Assert, false)
     INSERT_FUNCTION(Config, false)

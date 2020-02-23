@@ -45,6 +45,10 @@ SourceFile::Type GetSourceFileType(const std::string& file) {
     return SourceFile::SOURCE_DEF;
   if (extension == "rs")
     return SourceFile::SOURCE_RS;
+  if (extension == "cs")
+    return SourceFile::SOURCE_CS;
+  if (extension == "xaml")
+    return SourceFile::SOURCE_XAML;
   if (extension == "go")
     return SourceFile::SOURCE_GO;
 

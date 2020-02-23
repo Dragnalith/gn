@@ -62,6 +62,7 @@ class Toolchain : public Item {
   const CTool* GetToolAsC(const char* name) const;
   RustTool* GetToolAsRust(const char* name);
   const RustTool* GetToolAsRust(const char* name) const;
+  const CSharpTool* GetToolAsCSharp(const char* name) const;
 
   // Set a tool. When all tools are configured, you should call
   // ToolchainSetupComplete().
@@ -103,6 +104,7 @@ class Toolchain : public Item {
   const GeneralTool* GetToolForTargetFinalOutputAsGeneral(
       const Target* target) const;
   const RustTool* GetToolForTargetFinalOutputAsRust(const Target* target) const;
+  const CSharpTool* GetToolForTargetFinalOutputAsCSharp(const Target* target) const;
 
   const SubstitutionBits& substitution_bits() const {
     DCHECK(setup_complete_);

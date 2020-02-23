@@ -10,9 +10,10 @@
 #include "gn/c_substitution_type.h"
 #include "gn/err.h"
 #include "gn/rust_substitution_type.h"
+#include "gn/csharp_substitution_type.h"
 
 const std::vector<SubstitutionTypes*> AllSubstitutions = {
-    &GeneralSubstitutions, &CSubstitutions, &RustSubstitutions};
+    &GeneralSubstitutions, &CSubstitutions, &RustSubstitutions, &CSharpSubstitutions};
 
 const SubstitutionTypes GeneralSubstitutions = {
     &SubstitutionLiteral,

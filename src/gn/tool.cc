@@ -7,6 +7,7 @@
 #include "gn/c_tool.h"
 #include "gn/general_tool.h"
 #include "gn/rust_tool.h"
+#include "gn/csharp_tool.h"
 #include "gn/settings.h"
 #include "gn/target.h"
 
@@ -48,6 +49,13 @@ RustTool* Tool::AsRust() {
   return nullptr;
 }
 const RustTool* Tool::AsRust() const {
+  return nullptr;
+}
+
+CSharpTool* Tool::AsCSharp() {
+  return nullptr;
+}
+const CSharpTool* Tool::AsCSharp() const {
   return nullptr;
 }
 
@@ -233,6 +241,11 @@ std::unique_ptr<Tool> Tool::CreateTool(const ParseNode* function,
       return tool;
     return nullptr;
   }
+  if (CSharpTool* csharp_tool = tool->AsCSharp()) {
+    if (csharp_tool->InitTool(scope, toolchain, err))
+      return tool;
+    return nullptr;
+  }
   NOTREACHED();
   *err = Err(function, "Unknown tool type.");
   return nullptr;
@@ -290,6 +303,12 @@ std::unique_ptr<Tool> Tool::CreateTool(const std::string& name) {
   else if (name == RustTool::kRsToolStaticlib)
     return std::make_unique<RustTool>(RustTool::kRsToolStaticlib);
 
+  // CSharp tool
+  else if (name == CSharpTool::kMSBuild)
+    return std::make_unique<CSharpTool>(CSharpTool::kMSBuild);
+  else if (name == CSharpTool::kGenerator)
+    return std::make_unique<CSharpTool>(CSharpTool::kGenerator);
+
   return nullptr;
 }
 
@@ -311,6 +330,9 @@ const char* Tool::GetToolTypeForSourceType(SourceFile::Type type) {
       return CTool::kCToolRc;
     case SourceFile::SOURCE_RS:
       return RustTool::kRsToolBin;
+    case SourceFile::SOURCE_CS:
+    case SourceFile::SOURCE_XAML:
+      return CSharpTool::kMSBuild;
     case SourceFile::SOURCE_UNKNOWN:
     case SourceFile::SOURCE_H:
     case SourceFile::SOURCE_O:
@@ -376,6 +398,8 @@ const char* Tool::GetToolTypeForTargetFinalOutput(const Target* target) {
       return CTool::kCToolAlink;
     case Target::SOURCE_SET:
       return GeneralTool::kGeneralToolStamp;
+    case Target::CSHARP_ASSEMBLY:
+      return CSharpTool::kMSBuild;
     case Target::ACTION:
     case Target::ACTION_FOREACH:
     case Target::BUNDLE_DATA:

@@ -39,6 +39,8 @@ class SourceFile {
     SOURCE_DEF,
 
     SOURCE_RS,
+    SOURCE_CS,
+    SOURCE_XAML,
     SOURCE_GO,
 
     // Must be last.

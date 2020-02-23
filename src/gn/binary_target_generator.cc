@@ -102,12 +102,14 @@ bool BinaryTargetGenerator::FillSources() {
         break;
       case SourceFile::SOURCE_UNKNOWN:
       case SourceFile::SOURCE_NUMTYPES:
-        *err_ =
-            Err(scope_->GetValue(variables::kSources, true)->list_value()[i],
-                std::string("Only source, header, and object files belong in "
-                            "the sources of a ") +
-                    Target::GetStringForOutputType(target_->output_type()) +
-                    ". " + source.value() + " is not one of the valid types.");
+        if (target_->output_type() != Target::OutputType::CSHARP_ASSEMBLY) {
+            *err_ =
+                Err(scope_->GetValue(variables::kSources, true)->list_value()[i],
+                    std::string("Only source, header, and object files belong in "
+                                "the sources of a ") +
+                        Target::GetStringForOutputType(target_->output_type()) +
+                        ". " + source.value() + " is not one of the valid types.");
+        }
     }
 
     target_->source_types_used().Set(source.type());

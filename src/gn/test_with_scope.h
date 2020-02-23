@@ -14,6 +14,7 @@
 #include "gn/err.h"
 #include "gn/general_tool.h"
 #include "gn/input_file.h"
+#include "gn/csharp_tool.h"
 #include "gn/parse_tree.h"
 #include "gn/rust_tool.h"
 #include "gn/scope.h"

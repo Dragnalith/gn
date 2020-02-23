@@ -15,6 +15,7 @@
 #include "gn/action_values.h"
 #include "gn/bundle_data.h"
 #include "gn/config_values.h"
+#include "gn/csharp_values.h"
 #include "gn/inherited_libraries.h"
 #include "gn/item.h"
 #include "gn/label_pattern.h"
@@ -50,6 +51,7 @@ class Target : public Item {
     GENERATED_FILE,
     RUST_LIBRARY,
     RUST_PROC_MACRO,
+    CSHARP_ASSEMBLY,
   };
 
   enum DepsIterationType {
@@ -274,6 +276,9 @@ class Target : public Item {
   RustValues& rust_values() { return rust_values_; }
   const RustValues& rust_values() const { return rust_values_; }
 
+  CSharpValues& csharp_values() { return csharp_values_; }
+  const CSharpValues& csharp_values() const { return csharp_values_; }
+
   const OrderedSet<SourceDir>& all_lib_dirs() const { return all_lib_dirs_; }
   const OrderedSet<LibFile>& all_libs() const { return all_libs_; }
 
@@ -437,6 +442,8 @@ class Target : public Item {
 
   // Used for Rust targets.
   RustValues rust_values_;
+
+  CSharpValues csharp_values_;
 
   // Toolchain used by this target. Null until target is resolved.
   const Toolchain* toolchain_ = nullptr;

@@ -220,6 +220,23 @@ void TestWithScope::SetupToolchain(Toolchain* toolchain, bool use_toc) {
   SetCommandForTool("touch {{output}}", compile_xcassets_tool.get());
   toolchain->SetTool(std::move(compile_xcassets_tool));
 
+  // CSharp
+  std::unique_ptr<Tool> msbuild_tool = Tool::CreateTool(CSharpTool::kMSBuild);
+  SetCommandForTool(
+      "msbuild {{project_name}}",
+      msbuild_tool.get());
+  msbuild_tool->set_outputs(SubstitutionList::MakeForTest(
+      "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"));
+  toolchain->SetTool(std::move(msbuild_tool));
+
+  std::unique_ptr<Tool> csharp_gen_tool = Tool::CreateTool(CSharpTool::kGenerator);
+  SetCommandForTool(
+      "python.exe cs_gen.py {{source}}",
+      csharp_gen_tool.get());
+  csharp_gen_tool->set_outputs(SubstitutionList::MakeForTest(
+      "{{output_dir}}/{{target_output_name}}{{output_extension}}"));
+  toolchain->SetTool(std::move(csharp_gen_tool));
+
   // RUST
   std::unique_ptr<Tool> rustc_tool = Tool::CreateTool(RustTool::kRsToolBin);
   SetCommandForTool(

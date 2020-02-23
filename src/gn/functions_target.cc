@@ -640,6 +640,33 @@ Value RunLoadableModule(Scope* scope,
                               block, err);
 }
 
+// csharp_assembly ----------------------------------------------------------------
+
+const char kCSharpAssembly[] = "csharp_assembly";
+const char kCSharpAssembly_HelpShort[] =
+    "csharp_assembly: Declare a C# Assembly target.";
+const char kCSharpAssembly_Help[] =
+    R"(csharp_assembly: Declare a C# Assembly target.
+
+  A C# Assembly is a .Net Assembly compiled from C# sources. In addition to assembly code
+  it can contains pre-compiled .xaml as well as Resources.
+
+Language and compilation
+)" LANGUAGE_HELP
+    R"(
+
+Variables
+
+)" CONFIG_VALUES_VARS_HELP DEPS_VARS DEPENDENT_CONFIG_VARS GENERAL_TARGET_VARS;
+Value RunCSharpAssembly(Scope* scope,
+                     const FunctionCallNode* function,
+                     const std::vector<Value>& args,
+                     BlockNode* block,
+                     Err* err) {
+  return ExecuteGenericTarget(functions::kCSharpAssembly, scope, function, args,
+                              block, err);
+}
+
 // rust_library ----------------------------------------------------------------
 
 const char kRustLibrary[] = "rust_library";

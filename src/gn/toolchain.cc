@@ -87,6 +87,13 @@ const RustTool* Toolchain::GetToolAsRust(const char* name) const {
   return nullptr;
 }
 
+const CSharpTool* Toolchain::GetToolAsCSharp(const char* name) const {
+  if (const Tool* tool = GetTool(name)) {
+    return tool->AsCSharp();
+  }
+  return nullptr;
+}
+
 void Toolchain::SetTool(std::unique_ptr<Tool> t) {
   DCHECK(t->name() != Tool::kToolNone);
   DCHECK(tools_.find(t->name()) == tools_.end());
@@ -137,4 +144,9 @@ const GeneralTool* Toolchain::GetToolForTargetFinalOutputAsGeneral(
 const RustTool* Toolchain::GetToolForTargetFinalOutputAsRust(
     const Target* target) const {
   return GetToolAsRust(Tool::GetToolTypeForTargetFinalOutput(target));
+}
+
+const CSharpTool* Toolchain::GetToolForTargetFinalOutputAsCSharp(
+    const Target* target) const {
+  return GetToolAsCSharp(Tool::GetToolTypeForTargetFinalOutput(target));
 }
