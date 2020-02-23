@@ -1,5 +1,5 @@
 rule cxx
-  command = ninja -t msvc -- $cxx /nologo /showIncludes /FC $includes $cflags /c $in /Fo$out
+  command = ninja -t msvc -- $cxx /nologo /showIncludes /FC $includes $cflags /c /Fd:$out.pdb $in /Fo$out
   description = CXX $out
   deps = msvc
 

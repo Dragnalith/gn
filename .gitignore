@@ -60,3 +60,4 @@ Thumbs.db
 # Visual Studio Code
 /.vscode/
 /_out
+CppProperties.json

@@ -407,7 +407,7 @@ def WriteGNNinja(path, platform, host, options):
         '/D_HAS_EXCEPTIONS=0',
     ])
 
-    ldflags.extend(['/DEBUG', '/MACHINE:x64'])
+    ldflags.extend(['/DEBUG'])
 
   static_libraries = {
       'base': {'sources': [
