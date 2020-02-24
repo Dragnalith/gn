@@ -52,9 +52,13 @@ void CSharpTargetGenerator::Run() {
 bool CSharpTargetGenerator::FillProjectPath() {
   SourceFile projectPath(
       GetBuildDirForTargetAsSourceDir(target_, BuildDirType::OBJ).value() +
+      target_->label().name() + ".for_build.csproj");
+  SourceFile projectSlnPath(
+      GetBuildDirForTargetAsSourceDir(target_, BuildDirType::OBJ).value() +
       target_->label().name() + ".csproj");
 
   target_->csharp_values().set_project_path(projectPath);
+  target_->csharp_values().set_project_sln_path(projectSlnPath);
   return true;
 }
 
@@ -69,6 +73,7 @@ bool CSharpTargetGenerator::FillProjectGuid() {
     return false;
 
   target_->csharp_values().project_guid() = std::move(value->string_value());
+
 
   return true;
 }

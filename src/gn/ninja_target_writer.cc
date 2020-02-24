@@ -95,7 +95,8 @@ std::string NinjaTargetWriter::RunAndWriteFile(const Target* target) {
     writer.Run();
   } else if (target->output_type() == Target::CSHARP_ASSEMBLY) {
     std::stringstream csproj;
-    NinjaCSharpAssemblyTargetWriter writer(target, rules, csproj);
+    std::stringstream csproj_sln;
+    NinjaCSharpAssemblyTargetWriter writer(target, rules, csproj, csproj_sln);
     writer.Run();
 
     // Write the csproj
@@ -104,6 +105,13 @@ std::string NinjaTargetWriter::RunAndWriteFile(const Target* target) {
         settings->build_settings()->GetFullPath(csproj_file);
     base::CreateDirectory(full_csproj_file.DirName());
     WriteFileIfChanged(full_csproj_file, csproj.str(), nullptr);
+
+    // Write the csproj for sln
+    SourceFile csproj_sln_file = target->csharp_values().project_sln_path();
+    base::FilePath full_csproj_sln_file =
+        settings->build_settings()->GetFullPath(csproj_sln_file);
+    base::CreateDirectory(full_csproj_sln_file.DirName());
+    WriteFileIfChanged(full_csproj_sln_file, csproj_sln.str(), nullptr);
   } else {
     CHECK(0) << "Output type of target not handled.";
   }

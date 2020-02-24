@@ -34,7 +34,8 @@ TEST_F(NinjaCSharpAssemblyTargetWriterTest, RustExecutable) {
   {
     std::ostringstream out;
     std::ostringstream csproj_out;
-    NinjaCSharpAssemblyTargetWriter writer(&target, out, csproj_out);
+    std::ostringstream csproj_sln_out;
+    NinjaCSharpAssemblyTargetWriter writer(&target, out, csproj_out, csproj_sln_out);
     writer.Run();
 
     const char expected[] =        "TODO: write expected value\n";

@@ -53,9 +53,11 @@ void WriteVar(const char* name,
 NinjaCSharpAssemblyTargetWriter::NinjaCSharpAssemblyTargetWriter(
     const Target* target,
     std::ostream& out,
-    std::ostream& csproj_out)
+    std::ostream& csproj_out,
+    std::ostream& csproj_sln_out)
     : NinjaBinaryTargetWriter(target, out),
       csproj_out_(csproj_out),
+      csproj_sln_out_(csproj_sln_out),
       msbuild_tool_(
           target->toolchain()->GetToolForTargetFinalOutputAsCSharp(target)) {}
 
@@ -64,7 +66,6 @@ NinjaCSharpAssemblyTargetWriter::~NinjaCSharpAssemblyTargetWriter() = default;
 void NinjaCSharpAssemblyTargetWriter::Run() {
   out_ << "build ";
   path_output_.WriteFile(out_, target_->dependency_output_file());
-  std::string target_name = target_->GetComputedOutputName();
 
   std::vector<OutputFile> deps;
   for (const auto& pair : target_->GetDeps(Target::DEPS_LINKED)) {
@@ -89,6 +90,14 @@ void NinjaCSharpAssemblyTargetWriter::Run() {
 
   out_ << std::endl;
 
+  GenerateCSProj(deps, csproj_out_, false);
+  GenerateCSProj(deps, csproj_sln_out_, true);
+}
+
+void NinjaCSharpAssemblyTargetWriter::GenerateCSProj(
+    std::vector<OutputFile>& deps, std::ostream& out,
+    bool with_ninja_build) {
+  std::string target_name = target_->GetComputedOutputName();
   SourceDir project_dir = target_->csharp_values().project_path().GetDir();
   SourceDir target_dir = target_->label().dir();
   SourceDir build_dir = target_->settings()->build_settings()->build_dir();
@@ -97,26 +106,14 @@ void NinjaCSharpAssemblyTargetWriter::Run() {
           .AsSourceFile(target_->settings()->build_settings())
           .GetDir();
 
-#if 0
-  csproj_out_ << "proj_dir: " << project_dir.value() << '\n';
-  csproj_out_ << "out_dir: " << output_dir.value() << '\n';
-  csproj_out_ << "target_dir" << target_dir.value() << '\n';
-  for (const auto& source : target_->sources()) {
-    csproj_out_ << "source: ";
-    path_output_.WriteFile(csproj_out_, source);
-    csproj_out_ << '\n';
-    csproj_out_ << "link: " << RebasePath(source.value(), target_dir) << '\n';
-  }
-  csproj_out_ << "output: " << output_files[0].value();
-#endif
   PathOutput project_path_output(
       GetBuildDirForTargetAsSourceDir(target_, BuildDirType::OBJ),
       target_->settings()->build_settings()->root_path_utf8(),
       EscapingMode::ESCAPE_NONE);
 
-  csproj_out_ << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
+  out << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
   XmlElementWriter project(
-      csproj_out_, "Project",
+      out, "Project",
       XmlAttributes("ToolsVersion", "15.0")
           .add("xmlns", "http://schemas.microsoft.com/developer/msbuild/2003"));
 
@@ -131,6 +128,7 @@ void NinjaCSharpAssemblyTargetWriter::Run() {
   {
     auto commonPropertyGroup = project.SubElement("PropertyGroup");
     commonPropertyGroup->SubElement("Platform")->Text("AnyCPU");
+    commonPropertyGroup->SubElement("RootBuildDir")->Text("$(SolutionDir)");
     commonPropertyGroup->SubElement("ProjectGuid")
         ->Text(target_->csharp_values().project_guid());
     commonPropertyGroup->SubElement("OutputType")
@@ -175,9 +173,9 @@ void NinjaCSharpAssemblyTargetWriter::Run() {
         auto hint = ref->SubElement("Hint");
         hint->StartContent(false);
         if (l.is_system_absolute()) {
-          csproj_out_ << RebasePath(l.value(), project_dir);
+          out << RebasePath(l.value(), project_dir);
         } else {
-          project_path_output.WriteFile(csproj_out_, l);
+          project_path_output.WriteFile(out, l);
         }
       }
     }
@@ -236,4 +234,34 @@ void NinjaCSharpAssemblyTargetWriter::Run() {
   project.SubElement(
       "Import", XmlAttributes("Project",
                               "$(MSBuildToolsPath)\\Microsoft.CSharp.targets"));
+  if (with_ninja_build) {
+      PathOutput ninja_path_output_(
+          target_->settings()->build_settings()->build_dir(),
+          target_->settings()->build_settings()->root_path_utf8(),
+          EscapingMode::ESCAPE_NINJA_COMMAND);
+      std::ostringstream ninja_target_out;
+      DCHECK(!target_->dependency_output_file().value().empty());
+      ninja_path_output_.WriteFile(ninja_target_out,
+                                   target_->dependency_output_file());
+      std::string ninja_target = ninja_target_out.str();
+      if (ninja_target.compare(0, 2, "./") == 0) {
+        ninja_target = ninja_target.substr(2);
+      }
+      {
+        std::unique_ptr<XmlElementWriter> build =
+            project.SubElement("Target", XmlAttributes("Name", "Build"));
+        build->SubElement(
+            "Exec",
+            XmlAttributes("Command", "call ninja.exe -C $(RootBuildDir) " + ninja_target));
+      }
+
+      {
+        std::unique_ptr<XmlElementWriter> clean =
+            project.SubElement("Target", XmlAttributes("Name", "Clean"));
+        clean->SubElement(
+            "Exec",
+            XmlAttributes("Command",
+                          "call ninja.exe -C $(RootBuildDir) -tclean " + ninja_target));
+      }
+  }
 }

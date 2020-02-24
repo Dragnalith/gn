@@ -84,6 +84,7 @@ const char kWindowsKitsVersion[] = "10";                   // Windows 10 SDK
 const char kWindowsKitsDefaultVersion[] = "10.0.17134.0";  // Windows 10 SDK
 
 const char kGuidTypeProject[] = "{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}";
+const char kGuidTypeCSharpProject[] = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}";
 const char kGuidTypeFolder[] = "{2150E333-8FDC-42A3-9474-1A3956D46DE8}";
 const char kGuidSeedProject[] = "project";
 const char kGuidSeedFolder[] = "folder";
@@ -254,10 +255,12 @@ VisualStudioWriter::SolutionProject::SolutionProject(
     const std::string& _path,
     const std::string& _guid,
     const std::string& _label_dir_path,
-    const std::string& _config_platform)
+    const std::string& _config_platform,
+    bool is_cs)
     : SolutionEntry(_name, _path, _guid),
       label_dir_path(_label_dir_path),
-      config_platform(_config_platform) {
+      config_platform(_config_platform),
+      is_csharp(is_cs) {
   // Make sure all paths use the same drive letter case. This is especially
   // important when searching for the common path prefix.
   label_dir_path[0] = base::ToUpperASCII(label_dir_path[0]);
@@ -394,6 +397,17 @@ bool VisualStudioWriter::WriteProjectFiles(const Target* target,
       project_config_platform = "Win32";
   }
 
+  if (target->output_type() == Target::CSHARP_ASSEMBLY) {
+    base::FilePath csproj_path = build_settings_->GetFullPath(target->csharp_values().project_sln_path());
+    std::string csproj_path_str = FilePathToUTF8(csproj_path);
+    projects_.push_back(std::make_unique<SolutionProject>(
+        project_name, csproj_path_str,
+        target->csharp_values().project_guid(),
+        FilePathToUTF8(build_settings_->GetFullPath(target->label().dir())),
+        project_config_platform,
+        true));
+    return true;
+  }
   SourceFile target_file =
       GetBuildDirForTargetAsSourceDir(target, BuildDirType::OBJ)
           .ResolveRelativeFile(Value(nullptr, project_name + ".vcxproj"), err);
@@ -755,8 +769,12 @@ void VisualStudioWriter::WriteSolutionFileContents(
   }
 
   for (const std::unique_ptr<SolutionProject>& project : projects_) {
-    out << "Project(\"" << kGuidTypeProject << "\") = \"" << project->name
-        << "\", \"" << RebasePath(project->path, solution_dir) << "\", \""
+    if (project->is_csharp) {
+      out << "Project(\"" << kGuidTypeCSharpProject << "\") = \"" << project->name;
+    } else {
+      out << "Project(\"" << kGuidTypeProject << "\") = \"" << project->name;
+    }
+      out << "\", \"" << RebasePath(project->path, solution_dir) << "\", \""
         << project->guid << "\"" << std::endl;
     out << "EndProject" << std::endl;
   }

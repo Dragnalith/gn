@@ -78,13 +78,15 @@ class VisualStudioWriter {
                     const std::string& path,
                     const std::string& guid,
                     const std::string& label_dir_path,
-                    const std::string& config_platform);
+                    const std::string& config_platform,
+                    bool is_csharp = false);
     ~SolutionProject() override;
 
     // Absolute label dir path.
     std::string label_dir_path;
     // Configuration platform. May be different than solution config platform.
     std::string config_platform;
+    bool is_csharp;
   };
 
   struct SourceFileCompileTypePair {
