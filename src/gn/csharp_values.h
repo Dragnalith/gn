@@ -23,18 +23,18 @@ class CSharpValues {
   const SourceFile& project_path() const { return project_path_; }
   void set_project_path(const SourceFile& s) { project_path_ = s; }
 
-  const std::string& assembly_type() const { return output_type_; }
-  std::string& assembly_type() { return output_type_; }
-  const std::string& output_type() const { return output_type_; }
-  std::string& output_type() { return output_type_; }
+  const std::string& assembly_type() const { return assembly_type_; }
+  std::string& assembly_type() { return assembly_type_; }
+  const std::string& project_guid() const { return project_guid_; }
+  std::string& project_guid() { return project_guid_; }
   const std::string& extension() const { return extension_; }
   std::string& extension() { return extension_; }
 
  private:
   SourceFile project_path_;
-  OutputFile output_path_;
+  std::string project_guid_;
   std::string extension_;
-  std::string output_type_;
+  std::string assembly_type_;
 
   DISALLOW_COPY_AND_ASSIGN(CSharpValues);
 };

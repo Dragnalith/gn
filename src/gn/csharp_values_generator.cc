@@ -15,6 +15,7 @@
 #include "gn/target.h"
 #include "gn/value_extractors.h"
 #include "gn/substitution_writer.h"
+#include "gn/visual_studio_utils.h"
 
 CSharpTargetGenerator::CSharpTargetGenerator(Target* target,
                                          Scope* scope,
@@ -44,6 +45,8 @@ void CSharpTargetGenerator::Run() {
     return;
   if (!FillProjectPath())
     return;
+  if (!FillProjectGuid())
+    return;
 }
 
 bool CSharpTargetGenerator::FillProjectPath() {
@@ -52,6 +55,21 @@ bool CSharpTargetGenerator::FillProjectPath() {
       target_->label().name() + ".csproj");
 
   target_->csharp_values().set_project_path(projectPath);
+  return true;
+}
+
+bool CSharpTargetGenerator::FillProjectGuid() {
+  const Value* value = scope_->GetValue(variables::kCSharpProjectGuid, true);
+  if (!value) {
+    // The target name will be used.
+    target_->csharp_values().project_guid() = MakeGuid(target_->csharp_values().project_path().value(), "csproj");
+    return true;
+  }
+  if (!value->VerifyTypeIs(Value::STRING, err_))
+    return false;
+
+  target_->csharp_values().project_guid() = std::move(value->string_value());
+
   return true;
 }
 

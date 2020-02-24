@@ -132,9 +132,9 @@ void NinjaCSharpAssemblyTargetWriter::Run() {
     auto commonPropertyGroup = project.SubElement("PropertyGroup");
     commonPropertyGroup->SubElement("Platform")->Text("AnyCPU");
     commonPropertyGroup->SubElement("ProjectGuid")
-        ->Text("{696F6F3E-15C6-4DB8-ABE9-1FC7641E1B9F}");
+        ->Text(target_->csharp_values().project_guid());
     commonPropertyGroup->SubElement("OutputType")
-        ->Text(target_->csharp_values().output_type());
+        ->Text(target_->csharp_values().assembly_type());
     commonPropertyGroup->SubElement("RootNamespace")->Text(target_name);
     commonPropertyGroup->SubElement("AssemblyName")->Text(target_name);
     commonPropertyGroup->SubElement("TargetFrameworkVersion")->Text("v4.6.1");

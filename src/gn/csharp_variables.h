@@ -17,6 +17,9 @@ extern const char kCSharpAssemblyType[];
 extern const char kCSharpAssemblyType_HelpShort[];
 extern const char kCSharpAssemblyType_Help[];
 
+extern const char kCSharpProjectGuid[];
+extern const char kCSharpProjectGuid_HelpShort[];
+extern const char kCSharpProjectGuid_Help[];
 
 
 void InsertCSharpVariables(VariableInfoMap* info_map);
