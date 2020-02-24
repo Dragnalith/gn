@@ -193,13 +193,44 @@ void NinjaCSharpAssemblyTargetWriter::Run() {
     }
   }
   {
-    auto itemGroup = project.SubElement("ItemGroup");
+    std::set<SourceFile> sources;
     for (const auto& source : target_->sources()) {
-      itemGroup
-          ->SubElement("Compile", "Include",
-                       SourceFileWriter(project_path_output, source))
-          ->SubElement("Link")
-          ->Text(RebasePath(source.value(), target_dir));
+      sources.insert(source);
+    }
+    auto itemGroup = project.SubElement("ItemGroup");
+    for (const auto& source : sources) {
+      switch (source.type()) {
+        case SourceFile::SOURCE_CS:
+          {
+            auto compile = itemGroup->SubElement(
+                "Compile", "Include",
+                SourceFileWriter(project_path_output, source));
+            compile->SubElement("Link")->Text(RebasePath(source.value(), target_dir));
+
+            std::string val = source.value();
+            if (base::EndsWith(val, ".xaml.cs", base::CompareCase::SENSITIVE)) {
+              SourceFile baseSource(val.substr(0, val.size() - 3));
+              if (sources.find(baseSource) != sources.end()) {
+                compile->SubElement("DependentUpon")->Text(RebasePath(baseSource.value(), target_dir));
+                compile->SubElement("SubType")->Text("Code");
+              }
+            }
+          }
+          break;
+        case SourceFile::SOURCE_XAML:
+          {
+            auto page = itemGroup->SubElement("Page", "Include", SourceFileWriter(project_path_output, source));
+            page->SubElement("Link")->Text(RebasePath(source.value(), target_dir));
+            page->SubElement("Generator")->Text("MSBuild:Compile");
+            page->SubElement("SubType")->Text("Designer");
+          }
+          break;
+        default:
+          {
+            auto resource = itemGroup->SubElement("Resource", "Include", SourceFileWriter(project_path_output, source));
+            resource->SubElement("Link")->Text(RebasePath(source.value(), target_dir));
+          }
+      }
     }
   }
   project.SubElement(
