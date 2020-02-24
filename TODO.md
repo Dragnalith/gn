@@ -3,5 +3,5 @@ TODO:
 - [x] Handle dependencies
 - [x] Handle custom library reference
 - [x] Compile WPF
-- [ ] Generate correct project GUID
-- [ ] Visual Studio Solution integrate .csproj
+- [x] Generate correct project GUID
+- [x] Visual Studio Solution integrate .csproj
