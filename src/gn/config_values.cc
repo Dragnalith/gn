@@ -37,6 +37,9 @@ void ConfigValues::AppendValues(const ConfigValues& append) {
   VectorAppend(&lib_dirs_, append.lib_dirs_);
   VectorAppend(&libs_, append.libs_);
   VectorAppend(&rustflags_, append.rustflags_);
+  VectorAppend(&csflags_, append.csflags_);
+  VectorAppend(&cs_system_references_, append.cs_system_references_);
+  VectorAppend(&cs_references_, append.cs_references_);
   VectorAppend(&rustenv_, append.rustenv_);
 
   // Only append precompiled header if there isn't one. It might be nice to

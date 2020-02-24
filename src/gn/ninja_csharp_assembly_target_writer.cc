@@ -92,7 +92,10 @@ void NinjaCSharpAssemblyTargetWriter::Run() {
   SourceDir project_dir = target_->csharp_values().project_path().GetDir();
   SourceDir target_dir = target_->label().dir();
   SourceDir build_dir = target_->settings()->build_settings()->build_dir();
-  SourceDir output_dir = target_->dependency_output_file().AsSourceFile(target_->settings()->build_settings()).GetDir();
+  SourceDir output_dir =
+      target_->dependency_output_file()
+          .AsSourceFile(target_->settings()->build_settings())
+          .GetDir();
 
 #if 0
   csproj_out_ << "proj_dir: " << project_dir.value() << '\n';
@@ -130,7 +133,8 @@ void NinjaCSharpAssemblyTargetWriter::Run() {
     commonPropertyGroup->SubElement("Platform")->Text("AnyCPU");
     commonPropertyGroup->SubElement("ProjectGuid")
         ->Text("{696F6F3E-15C6-4DB8-ABE9-1FC7641E1B9F}");
-    commonPropertyGroup->SubElement("OutputType")->Text(target_->csharp_values().output_type());
+    commonPropertyGroup->SubElement("OutputType")
+        ->Text(target_->csharp_values().output_type());
     commonPropertyGroup->SubElement("RootNamespace")->Text(target_name);
     commonPropertyGroup->SubElement("AssemblyName")->Text(target_name);
     commonPropertyGroup->SubElement("TargetFrameworkVersion")->Text("v4.6.1");
@@ -152,21 +156,41 @@ void NinjaCSharpAssemblyTargetWriter::Run() {
   {
     auto itemGroup = project.SubElement("ItemGroup");
 
+    std::set<SourceFile> libs;
+    for (ConfigValuesIterator iter(target_); !iter.done(); iter.Next()) {
+      for (const auto& l : iter.cur().cs_references()) {
+        libs.insert(l);
+      }
+    }
     for (const auto& d : deps) {
-      base::FilePath output = UTF8ToFilePath(d.AsSourceFile(target_->settings()->build_settings()).value());
-      itemGroup->SubElement("Reference", XmlAttributes("Include", output.RemoveExtension().BaseName().As8Bit()))
-          ->SubElement("Hint")
-          ->Text(RebasePath(output.As8Bit(), project_dir));
+      libs.insert(d.AsSourceFile(target_->settings()->build_settings()));
+    }
+    for (const auto& l : libs) {
+      base::FilePath output = UTF8ToFilePath(l.value());
+      {
+        auto ref = itemGroup->SubElement(
+            "Reference",
+            XmlAttributes("Include",
+                          output.RemoveExtension().BaseName().As8Bit()));
+        auto hint = ref->SubElement("Hint");
+        hint->StartContent(false);
+        if (l.is_system_absolute()) {
+          csproj_out_ << RebasePath(l.value(), project_dir);
+        } else {
+          project_path_output.WriteFile(csproj_out_, l);
+        }
+      }
     }
 
-    itemGroup->SubElement("Reference", XmlAttributes("Include", "System"));
-    itemGroup->SubElement("Reference", XmlAttributes("Include", "System.Core"));
-    itemGroup->SubElement("Reference", XmlAttributes("Include", "System.Xml.Linq"));
-    itemGroup->SubElement("Reference", XmlAttributes("Include", "System.Data.DataSetExtensions"));
-    itemGroup->SubElement("Reference", XmlAttributes("Include", "Microsoft.CSharp"));
-    itemGroup->SubElement("Reference", XmlAttributes("Include", "System.Data"));
-    itemGroup->SubElement("Reference", XmlAttributes("Include", "System.Net.Http"));
-    itemGroup->SubElement("Reference", XmlAttributes("Include", "System.Xml"));
+    std::set<std::string> references;
+    for (ConfigValuesIterator iter(target_); !iter.done(); iter.Next()) {
+      for (const auto& s : iter.cur().cs_system_references()) {
+        references.insert(s);
+      }
+    }
+    for (const auto& ref : references) {
+      itemGroup->SubElement("Reference", XmlAttributes("Include", ref));
+    }
   }
   {
     auto itemGroup = project.SubElement("ItemGroup");

@@ -44,6 +44,22 @@ void GetDirList(Scope* scope,
   (config_values->*accessor)().swap(result);
 }
 
+void GetSourceList(Scope* scope,
+                const char* var_name,
+                ConfigValues* config_values,
+                const SourceDir input_dir,
+                std::vector<SourceFile>& (ConfigValues::*accessor)(),
+                Err* err) {
+  const Value* value = scope->GetValue(var_name, true);
+  if (!value)
+    return;  // No value, empty input and succeed.
+
+  std::vector<SourceFile> result;
+  ExtractListOfRelativeFiles(scope->settings()->build_settings(), *value,
+                            input_dir, &result, err);
+  (config_values->*accessor)().swap(result);
+}
+
 }  // namespace
 
 ConfigValuesGenerator::ConfigValuesGenerator(ConfigValues* dest_values,
@@ -63,6 +79,9 @@ void ConfigValuesGenerator::Run() {
 #define FILL_DIR_CONFIG_VALUE(name)                                          \
   GetDirList(scope_, #name, config_values_, input_dir_, &ConfigValues::name, \
              err_);
+#define FILL_SOURCE_CONFIG_VALUE(name)                                          \
+  GetSourceList(scope_, #name, config_values_, input_dir_, &ConfigValues::name, \
+             err_);
 
   FILL_STRING_CONFIG_VALUE(arflags)
   FILL_STRING_CONFIG_VALUE(asmflags)
@@ -78,9 +97,13 @@ void ConfigValuesGenerator::Run() {
   FILL_DIR_CONFIG_VALUE(lib_dirs)
   FILL_STRING_CONFIG_VALUE(rustflags)
   FILL_STRING_CONFIG_VALUE(rustenv)
+  FILL_STRING_CONFIG_VALUE(csflags)
+  FILL_STRING_CONFIG_VALUE(cs_system_references)
+  FILL_SOURCE_CONFIG_VALUE(cs_references)
 
 #undef FILL_STRING_CONFIG_VALUE
 #undef FILL_DIR_CONFIG_VALUE
+#undef FILL_SOURCE_CONFIG_VALUE
 
   // Inputs
   const Value* inputs_value = scope_->GetValue(variables::kInputs, true);

@@ -29,6 +29,9 @@ class ConfigValues {
 #define DIR_VALUES_ACCESSOR(name)                                \
   const std::vector<SourceDir>& name() const { return name##_; } \
   std::vector<SourceDir>& name() { return name##_; }
+  #define SOURCE_VALUES_ACCESSOR(name)                                \
+  const std::vector<SourceFile>& name() const { return name##_; } \
+  std::vector<SourceFile>& name() { return name##_; }
 
   // =================================================================
   // IMPORTANT: If you add a new one, be sure to update AppendValues()
@@ -49,6 +52,10 @@ class ConfigValues {
   DIR_VALUES_ACCESSOR(lib_dirs)
   STRING_VALUES_ACCESSOR(rustflags)
   STRING_VALUES_ACCESSOR(rustenv)
+  STRING_VALUES_ACCESSOR(csflags)
+  STRING_VALUES_ACCESSOR(cs_system_references)
+  SOURCE_VALUES_ACCESSOR(cs_references)
+
   // =================================================================
   // IMPORTANT: If you add a new one, be sure to update AppendValues()
   //            and command_desc.cc.
@@ -94,6 +101,9 @@ class ConfigValues {
   std::vector<LibFile> libs_;
   std::vector<std::string> rustflags_;
   std::vector<std::string> rustenv_;
+  std::vector<std::string> csflags_;
+  std::vector<SourceFile> cs_references_;
+  std::vector<std::string> cs_system_references_;
   std::vector<std::pair<std::string, LibFile>> externs_;
   // If you add a new one, be sure to update AppendValues().
 
