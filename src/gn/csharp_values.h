@@ -10,6 +10,7 @@
 #include "base/containers/flat_map.h"
 #include "gn/label.h"
 #include "gn/source_file.h"
+#include "gn/output_file.h"
 
 // Holds the values (outputs, args, script name, etc.) for either an action or
 // an action_foreach target.
@@ -22,8 +23,16 @@ class CSharpValues {
   const SourceFile& project_path() const { return project_path_; }
   void set_project_path(const SourceFile& s) { project_path_ = s; }
 
+  const std::string& output_type() const { return output_type_; }
+  std::string& output_type() { return output_type_; }
+  const std::string& extension() const { return extension_; }
+  std::string& extension() { return extension_; }
+
  private:
   SourceFile project_path_;
+  OutputFile output_path_;
+  std::string extension_;
+  std::string output_type_;
 
   DISALLOW_COPY_AND_ASSIGN(CSharpValues);
 };

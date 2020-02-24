@@ -62,12 +62,9 @@ NinjaCSharpAssemblyTargetWriter::NinjaCSharpAssemblyTargetWriter(
 NinjaCSharpAssemblyTargetWriter::~NinjaCSharpAssemblyTargetWriter() = default;
 
 void NinjaCSharpAssemblyTargetWriter::Run() {
-  std::vector<OutputFile> output_files;
-  SubstitutionWriter::ApplyListToLinkerAsOutputFile(
-      target_, msbuild_tool_, msbuild_tool_->outputs(), &output_files);
-
-  out_ << "build";
-  path_output_.WriteFiles(out_, output_files);
+  out_ << "build ";
+  path_output_.WriteFile(out_, target_->dependency_output_file());
+  std::string target_name = target_->GetComputedOutputName();
 
   out_ << ": " << rule_prefix_ << msbuild_tool_->name();
   out_ << " ";
@@ -81,11 +78,9 @@ void NinjaCSharpAssemblyTargetWriter::Run() {
   out_ << std::endl;
 
   SourceDir project_dir = target_->csharp_values().project_path().GetDir();
-  SourceDir output_dir =
-      output_files[0]
-          .AsSourceFile(target_->settings()->build_settings())
-          .GetDir();
   SourceDir target_dir = target_->label().dir();
+  SourceDir build_dir = target_->settings()->build_settings()->build_dir();
+  SourceDir output_dir = target_->dependency_output_file().AsSourceFile(target_->settings()->build_settings()).GetDir();
 
 #if 0
   csproj_out_ << "proj_dir: " << project_dir.value() << '\n';
@@ -123,9 +118,9 @@ void NinjaCSharpAssemblyTargetWriter::Run() {
     commonPropertyGroup->SubElement("Platform")->Text("AnyCPU");
     commonPropertyGroup->SubElement("ProjectGuid")
         ->Text("{696F6F3E-15C6-4DB8-ABE9-1FC7641E1B9F}");
-    commonPropertyGroup->SubElement("OutputType")->Text("Library");
-    commonPropertyGroup->SubElement("RootNamespace")->Text("AppName");
-    commonPropertyGroup->SubElement("AssemblyName")->Text("AppName");
+    commonPropertyGroup->SubElement("OutputType")->Text(target_->csharp_values().output_type());
+    commonPropertyGroup->SubElement("RootNamespace")->Text(target_name);
+    commonPropertyGroup->SubElement("AssemblyName")->Text(target_name);
     commonPropertyGroup->SubElement("TargetFrameworkVersion")->Text("v4.6.1");
     commonPropertyGroup->SubElement("FileAlignment")->Text("512");
     commonPropertyGroup->SubElement("AutoGenerateBindingRedirects")

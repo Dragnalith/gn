@@ -675,7 +675,6 @@ bool Target::FillOutputFiles(Err* err) {
     }
     case EXECUTABLE:
     case LOADABLE_MODULE:
-    case CSHARP_ASSEMBLY:
       // Executables and loadable modules don't get linked to, but the first
       // output is used for dependency management.
       CHECK_GE(tool->outputs().list().size(), 1u);
@@ -690,6 +689,25 @@ bool Target::FillOutputFiles(Err* err) {
       } else {
         SubstitutionWriter::ApplyListToLinkerAsOutputFile(
             this, tool, tool->runtime_outputs(), &runtime_outputs_);
+      }
+      break;
+    case CSHARP_ASSEMBLY: 
+      {
+        check_tool_outputs = true;  // NOTE: Not sure if it is useful for C#
+
+        OutputFile output_dir(SubstitutionWriter::GetLinkerSubstitution(this, tool, &SubstitutionOutputDir) + '/');
+        std::string target_name = this->GetComputedOutputName();
+        OutputFile output_file(output_dir.value() + target_name +
+                                this->csharp_values().extension());
+
+        dependency_output_file_ = output_file;
+        if (tool->runtime_outputs().list().empty()) {
+        // Default to the first output for the runtime output.
+        runtime_outputs_.push_back(dependency_output_file_);
+        } else {
+        SubstitutionWriter::ApplyListToLinkerAsOutputFile(
+            this, tool, tool->runtime_outputs(), &runtime_outputs_);
+        }
       }
       break;
     case RUST_LIBRARY:

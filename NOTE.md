@@ -7,3 +7,5 @@ This document are my personal note while I am trying to integrate C#/WPF to gn
 - I also need to figure out how to forward build flag to the generator
 - I also need to specify source for the generator without ninja considering those files as sources (they list of file cannot be a regular GN's {{source}} substitution)
 - If .csproj are generated during the build by ninja and not by GN it will be hard to include them in the visual studio solution.
+# 25 Fev 2020
+- I have succeeded in generating .csproj with GN

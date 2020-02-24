@@ -13,6 +13,7 @@
 #include "gn/scope.h"
 #include "gn/target.h"
 #include "gn/value_extractors.h"
+#include "gn/substitution_writer.h"
 
 CSharpTargetGenerator::CSharpTargetGenerator(Target* target,
                                          Scope* scope,
@@ -38,6 +39,8 @@ void CSharpTargetGenerator::Run() {
     return;
   }
 
+  if (!FillOutputTypeAndExtension())
+    return;
   if (!FillProjectPath())
     return;
 }
@@ -46,8 +49,28 @@ bool CSharpTargetGenerator::FillProjectPath() {
   SourceFile projectPath(
       GetBuildDirForTargetAsSourceDir(target_, BuildDirType::OBJ).value() +
       target_->label().name() + ".csproj");
-  
 
   target_->csharp_values().set_project_path(projectPath);
+  return true;
+}
+
+bool CSharpTargetGenerator::FillOutputTypeAndExtension() {
+  const Value* value = scope_->GetValue(variables::kCSharpOutputType, true);
+  if (!value) {
+    // The target name will be used.
+    target_->csharp_values().output_type() = "Exe";
+    target_->csharp_values().extension() = ".exe";
+    return true;
+  }
+  if (!value->VerifyTypeIs(Value::STRING, err_))
+    return false;
+
+  target_->csharp_values().output_type() = std::move(value->string_value());
+  if (target_->csharp_values().output_type() == "Exe" || target_->csharp_values().output_type() == "WinExe") {
+    target_->csharp_values().extension() = ".exe";
+  } else {
+    target_->csharp_values().extension() = ".dll";
+  }
+
   return true;
 }
