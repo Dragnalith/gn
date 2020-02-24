@@ -13,7 +13,6 @@
 #include "gn/general_tool.h"
 #include "gn/ninja_c_binary_target_writer.h"
 #include "gn/ninja_rust_binary_target_writer.h"
-#include "gn/ninja_csharp_assembly_target_writer.h"
 #include "gn/ninja_target_command_util.h"
 #include "gn/ninja_utils.h"
 #include "gn/settings.h"
@@ -43,11 +42,6 @@ NinjaBinaryTargetWriter::~NinjaBinaryTargetWriter() = default;
 void NinjaBinaryTargetWriter::Run() {
   if (target_->source_types_used().RustSourceUsed()) {
     NinjaRustBinaryTargetWriter writer(target_, out_);
-    writer.Run();
-    return;
-  }
-  if (target_->output_type() == Target::OutputType::CSHARP_ASSEMBLY) {
-    NinjaCSharpAssemblyTargetWriter writer(target_, out_);
     writer.Run();
     return;
   }

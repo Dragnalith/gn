@@ -409,8 +409,7 @@ bool Target::IsBinary() const {
   return output_type_ == EXECUTABLE || output_type_ == SHARED_LIBRARY ||
          output_type_ == LOADABLE_MODULE || output_type_ == STATIC_LIBRARY ||
          output_type_ == SOURCE_SET || output_type_ == RUST_LIBRARY ||
-         output_type_ == RUST_PROC_MACRO ||
-         output_type_ == CSHARP_ASSEMBLY;
+         output_type_ == RUST_PROC_MACRO;
 }
 
 bool Target::IsLinkable() const {

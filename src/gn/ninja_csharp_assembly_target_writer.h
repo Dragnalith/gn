@@ -15,14 +15,14 @@ struct EscapeOptions;
 // library, or a static library).
 class NinjaCSharpAssemblyTargetWriter : public NinjaBinaryTargetWriter {
  public:
-  NinjaCSharpAssemblyTargetWriter(const Target* target, std::ostream& out);
+  NinjaCSharpAssemblyTargetWriter(const Target* target, std::ostream& out, std::ostream& csproj_out);
   ~NinjaCSharpAssemblyTargetWriter() override;
 
   void Run() override;
 
  private:
+  std::ostream& csproj_out_;
   const CSharpTool* msbuild_tool_;
-  const CSharpTool* gen_tool_;
   DISALLOW_COPY_AND_ASSIGN(NinjaCSharpAssemblyTargetWriter);
 };
 

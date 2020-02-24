@@ -26,14 +26,15 @@ TEST_F(NinjaCSharpAssemblyTargetWriterTest, RustExecutable) {
   target.sources().push_back(SourceFile("//Properties/AssemblyInfo.cs"));
   target.sources().push_back(SourceFile("//MainWindow.xaml"));
   target.sources().push_back(SourceFile("//MainWindow.xaml.cs"));
-  target.csharp_values().project_name() = "foo_bar";
+  target.csharp_values().set_project_path(SourceFile("//foo.csproj"));
   target.source_types_used().Set(SourceFile::SOURCE_CS);
   target.SetToolchain(setup.toolchain());
   ASSERT_TRUE(target.OnResolved(&err));
 
   {
     std::ostringstream out;
-    NinjaCSharpAssemblyTargetWriter writer(&target, out);
+    std::ostringstream csproj_out;
+    NinjaCSharpAssemblyTargetWriter writer(&target, out, csproj_out);
     writer.Run();
 
     const char expected[] =        "TODO: write expected value\n";

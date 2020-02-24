@@ -38,20 +38,16 @@ void CSharpTargetGenerator::Run() {
     return;
   }
 
-  if (!FillProjectName())
+  if (!FillProjectPath())
     return;
 }
 
-bool CSharpTargetGenerator::FillProjectName() {
-  const Value* value = scope_->GetValue(variables::kCSharpProjectName, true);
-  if (!value) {
-    // The target name will be used.
-    target_->csharp_values().project_name() = target_->label().name();
-    return true;
-  }
-  if (!value->VerifyTypeIs(Value::STRING, err_))
-    return false;
+bool CSharpTargetGenerator::FillProjectPath() {
+  SourceFile projectPath(
+      GetBuildDirForTargetAsSourceDir(target_, BuildDirType::OBJ).value() +
+      target_->label().name() + ".csproj");
+  
 
-  target_->csharp_values().project_name() = std::move(value->string_value());
+  target_->csharp_values().set_project_path(projectPath);
   return true;
 }

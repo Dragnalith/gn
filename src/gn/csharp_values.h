@@ -19,11 +19,11 @@ class CSharpValues {
   ~CSharpValues();
 
   // Name of generated csproj
-  std::string& project_name() { return project_name_; }
-  const std::string& project_name() const { return project_name_; }
+  const SourceFile& project_path() const { return project_path_; }
+  void set_project_path(const SourceFile& s) { project_path_ = s; }
 
  private:
-  std::string project_name_;
+  SourceFile project_path_;
 
   DISALLOW_COPY_AND_ASSIGN(CSharpValues);
 };

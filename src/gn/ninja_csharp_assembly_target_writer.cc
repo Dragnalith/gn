@@ -38,28 +38,15 @@ void WriteVar(const char* name,
 
 NinjaCSharpAssemblyTargetWriter::NinjaCSharpAssemblyTargetWriter(
     const Target* target,
-    std::ostream& out)
+    std::ostream& out,
+    std::ostream& csproj_out)
     : NinjaBinaryTargetWriter(target, out),
-      msbuild_tool_(target->toolchain()->GetToolForTargetFinalOutputAsCSharp(target)),
-      gen_tool_(target->toolchain()->GetTool(CSharpTool::kGenerator)->AsCSharp()) {}
+      csproj_out_(csproj_out),
+      msbuild_tool_(target->toolchain()->GetToolForTargetFinalOutputAsCSharp(target)) {}
 
 NinjaCSharpAssemblyTargetWriter::~NinjaCSharpAssemblyTargetWriter() = default;
 
 void NinjaCSharpAssemblyTargetWriter::Run() {
-  SourceDir proj = SourceDir(
-      GetBuildDirForTargetAsSourceDir(target_, BuildDirType::OBJ).value());
-
-  std::vector<OutputFile> imd_files;
-  SubstitutionWriter::ApplyListToLinkerAsOutputFile(
-      target_, gen_tool_, gen_tool_->outputs(), &imd_files);
-
-  out_ << "build";
-  path_output_.WriteFiles(out_, imd_files);
-
-  out_ << ": " << rule_prefix_ << gen_tool_->name();
-  out_ << " ";
-  out_ << std::endl;
-
   std::vector<OutputFile> output_files;
   SubstitutionWriter::ApplyListToLinkerAsOutputFile(
       target_, msbuild_tool_, msbuild_tool_->outputs(), &output_files);
@@ -70,7 +57,7 @@ void NinjaCSharpAssemblyTargetWriter::Run() {
   out_ << ": " << rule_prefix_ << msbuild_tool_->name();
   out_ << " ";
   path_output_.WriteFile(out_,
-                         OutputFile(target_->csharp_values().project_name()));
+                         target_->csharp_values().project_path());
   out_ << " |";
   for (const auto& source : target_->sources()) {
     out_ << " ";

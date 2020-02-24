@@ -18,6 +18,7 @@
 #include "gn/ninja_bundle_data_target_writer.h"
 #include "gn/ninja_copy_target_writer.h"
 #include "gn/ninja_create_bundle_target_writer.h"
+#include "gn/ninja_csharp_assembly_target_writer.h"
 #include "gn/ninja_generated_file_target_writer.h"
 #include "gn/ninja_group_target_writer.h"
 #include "gn/ninja_utils.h"
@@ -92,6 +93,17 @@ std::string NinjaTargetWriter::RunAndWriteFile(const Target* target) {
     needs_file_write = true;
     NinjaBinaryTargetWriter writer(target, rules);
     writer.Run();
+  } else if (target->output_type() == Target::CSHARP_ASSEMBLY) {
+    std::stringstream csproj;
+    NinjaCSharpAssemblyTargetWriter writer(target, rules, csproj);
+    writer.Run();
+
+    // Write the csproj
+    SourceFile csproj_file = target->csharp_values().project_path();
+    base::FilePath full_csproj_file =
+        settings->build_settings()->GetFullPath(csproj_file);
+    base::CreateDirectory(full_csproj_file.DirName());
+    WriteFileIfChanged(full_csproj_file, csproj.str(), nullptr);
   } else {
     CHECK(0) << "Output type of target not handled.";
   }

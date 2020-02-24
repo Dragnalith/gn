@@ -22,7 +22,7 @@ class CSharpTargetGenerator {
   void Run();
 
  private:
-  bool FillProjectName();
+  bool FillProjectPath();
 
   Target* target_;
   Scope* scope_;

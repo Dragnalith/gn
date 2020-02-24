@@ -5,6 +5,7 @@
 #include "gn/binary_target_generator.h"
 
 #include "gn/config_values_generator.h"
+#include "gn/csharp_values_generator.h"
 #include "gn/deps_iterator.h"
 #include "gn/err.h"
 #include "gn/filesystem_utils.h"
@@ -69,6 +70,12 @@ void BinaryTargetGenerator::DoRun() {
   if (target_->source_types_used().RustSourceUsed()) {
     RustTargetGenerator rustgen(target_, scope_, function_call_, err_);
     rustgen.Run();
+    if (err_->has_error())
+      return;
+  }
+  if (target_->output_type() == Target::CSHARP_ASSEMBLY) {
+    CSharpTargetGenerator csharpgen(target_, scope_, function_call_, err_);
+    csharpgen.Run();
     if (err_->has_error())
       return;
   }
