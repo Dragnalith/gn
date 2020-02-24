@@ -23,6 +23,8 @@ class CSharpValues {
   const SourceFile& project_path() const { return project_path_; }
   void set_project_path(const SourceFile& s) { project_path_ = s; }
 
+  const std::string& assembly_type() const { return output_type_; }
+  std::string& assembly_type() { return output_type_; }
   const std::string& output_type() const { return output_type_; }
   std::string& output_type() { return output_type_; }
   const std::string& extension() const { return extension_; }

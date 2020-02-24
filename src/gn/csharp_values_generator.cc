@@ -5,6 +5,7 @@
 #include "gn/csharp_values_generator.h"
 
 #include "gn/config_values_generator.h"
+#include "base/strings/string_util.h"
 #include "gn/err.h"
 #include "gn/filesystem_utils.h"
 #include "gn/functions.h"
@@ -55,18 +56,19 @@ bool CSharpTargetGenerator::FillProjectPath() {
 }
 
 bool CSharpTargetGenerator::FillOutputTypeAndExtension() {
-  const Value* value = scope_->GetValue(variables::kCSharpOutputType, true);
+  const Value* value = scope_->GetValue(variables::kCSharpAssemblyType, true);
   if (!value) {
     // The target name will be used.
-    target_->csharp_values().output_type() = "Exe";
+    target_->csharp_values().assembly_type() = "exe";
     target_->csharp_values().extension() = ".exe";
     return true;
   }
   if (!value->VerifyTypeIs(Value::STRING, err_))
     return false;
 
-  target_->csharp_values().output_type() = std::move(value->string_value());
-  if (target_->csharp_values().output_type() == "Exe" || target_->csharp_values().output_type() == "WinExe") {
+  target_->csharp_values().assembly_type() = std::move(value->string_value());
+  std::string assembly_type = target_->csharp_values().assembly_type();
+  if (base::EqualsCaseInsensitiveASCII(assembly_type, "exe") || base::EqualsCaseInsensitiveASCII(assembly_type, "winexe")) {
     target_->csharp_values().extension() = ".exe";
   } else {
     target_->csharp_values().extension() = ".dll";

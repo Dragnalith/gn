@@ -9,21 +9,21 @@ namespace variables {
 // CSharp target variables ------------------------------------------------------
 
 
-const char kCSharpOutputType[] = "output_type";
-const char kCSharpOutputType_HelpShort[] =
-    "output_type: [string] The output type ('Exe', 'WinExe', 'Library') for the C# assembly.";
-const char kCSharpOutputType_Help[] =
-    R"(output_type: [string] The output type ('Exe', 'WinExe', 'Library') for the C# assembly.
+const char kCSharpAssemblyType[] = "assembly_type";
+const char kCSharpAssemblyType_HelpShort[] =
+    "assembly_type: [string] The assembly type ('exe', 'winexe', 'library') for the C# assembly.";
+const char kCSharpAssemblyType_Help[] =
+    R"(assembly_type: [string] The assembly type ('exe', 'winexe', 'library') for the C# assembly.
 
   Valid for `csharp_assembly`.
 
-  If output_type is not set, then this rule will use 'Exe'.
+  If assembly_type is not set, then this rule will use 'exe'.
 )";
 
 void InsertCSharpVariables(VariableInfoMap* info_map) {
   info_map->insert(std::make_pair(
-      kCSharpOutputType,
-      VariableInfo(kCSharpOutputType_HelpShort, kCSharpOutputType_Help)));
+      kCSharpAssemblyType,
+      VariableInfo(kCSharpAssemblyType_HelpShort, kCSharpAssemblyType_Help)));
 }
 
 }  // namespace variables

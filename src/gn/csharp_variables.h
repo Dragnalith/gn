@@ -13,9 +13,9 @@ namespace variables {
 
 
 
-extern const char kCSharpOutputType[];
-extern const char kCSharpOutputType_HelpShort[];
-extern const char kCSharpOutputType_Help[];
+extern const char kCSharpAssemblyType[];
+extern const char kCSharpAssemblyType_HelpShort[];
+extern const char kCSharpAssemblyType_Help[];
 
 
 
