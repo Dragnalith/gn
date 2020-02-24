@@ -66,11 +66,23 @@ void NinjaCSharpAssemblyTargetWriter::Run() {
   path_output_.WriteFile(out_, target_->dependency_output_file());
   std::string target_name = target_->GetComputedOutputName();
 
+  std::vector<OutputFile> deps;
+  for (const auto& pair : target_->GetDeps(Target::DEPS_LINKED)) {
+    const Target* dep = pair.ptr;
+    if (dep->output_type() == Target::CSHARP_ASSEMBLY) {
+      deps.push_back(dep->dependency_output_file());
+    }
+  }
+
   out_ << ": " << rule_prefix_ << msbuild_tool_->name();
   out_ << " ";
   path_output_.WriteFile(out_, target_->csharp_values().project_path());
   out_ << " |";
   for (const auto& source : target_->sources()) {
+    out_ << " ";
+    path_output_.WriteFile(out_, source);
+  }
+  for (const auto& source : deps) {
     out_ << " ";
     path_output_.WriteFile(out_, source);
   }
@@ -139,6 +151,14 @@ void NinjaCSharpAssemblyTargetWriter::Run() {
   }
   {
     auto itemGroup = project.SubElement("ItemGroup");
+
+    for (const auto& d : deps) {
+      base::FilePath output = UTF8ToFilePath(d.AsSourceFile(target_->settings()->build_settings()).value());
+      itemGroup->SubElement("Reference", XmlAttributes("Include", output.RemoveExtension().BaseName().As8Bit()))
+          ->SubElement("Hint")
+          ->Text(RebasePath(output.As8Bit(), project_dir));
+    }
+
     itemGroup->SubElement("Reference", XmlAttributes("Include", "System"));
     itemGroup->SubElement("Reference", XmlAttributes("Include", "System.Core"));
     itemGroup->SubElement("Reference", XmlAttributes("Include", "System.Xml.Linq"));

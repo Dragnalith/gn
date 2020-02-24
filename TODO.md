@@ -1,5 +1,6 @@
 TODO:
 - [x] Compile generated .csproj
-- [ ] Generate correct project GUID
+- [x] Handle dependencies
 - [ ] Handle custom library reference
-- [ ] Handle dependencies
+- [ ] Generate correct project GUID
+- [ ] Visual Studio Solution integrate .csproj
