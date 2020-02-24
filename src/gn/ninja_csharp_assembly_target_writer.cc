@@ -170,7 +170,7 @@ void NinjaCSharpAssemblyTargetWriter::GenerateCSProj(
             "Reference",
             XmlAttributes("Include",
                           output.RemoveExtension().BaseName().As8Bit()));
-        auto hint = ref->SubElement("Hint");
+        auto hint = ref->SubElement("HintPath");
         hint->StartContent(false);
         if (l.is_system_absolute()) {
           out << RebasePath(l.value(), project_dir);
