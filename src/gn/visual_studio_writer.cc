@@ -393,7 +393,7 @@ bool VisualStudioWriter::WriteProjectFiles(const Target* target,
   std::string toolchain_name = target->toolchain()->label().name();
   const char* project_config_platform = config_platform_;
   if (!target->settings()->is_default()) {
-    project_name += "_" + toolchain_name;
+    //project_name += "_" + toolchain_name;
     const Value* value =
         target->settings()->base_config()->GetValue(variables::kCurrentCpu);
     if (value != nullptr && value->string_value() == "x64")
