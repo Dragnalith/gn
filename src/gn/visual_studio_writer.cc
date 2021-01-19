@@ -805,8 +805,10 @@ void VisualStudioWriter::WriteSolutionFileContents(
         config_mode_prefix + project->config_platform;
     out << "\t\t" << project->guid << '.' << config_mode
         << ".ActiveCfg = " << project_config_mode << std::endl;
-    out << "\t\t" << project->guid << '.' << config_mode
-        << ".Build.0 = " << project_config_mode << std::endl;
+    if (project->name == "default") {
+      out << "\t\t" << project->guid << '.' << config_mode
+          << ".Build.0 = " << project_config_mode << std::endl;
+    }
   }
   out << "\tEndGlobalSection" << std::endl;
 
