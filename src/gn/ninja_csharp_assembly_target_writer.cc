@@ -6,6 +6,7 @@
 
 #include <sstream>
 
+#include "base/command_line.h"
 #include "base/strings/string_util.h"
 #include "gn/deps_iterator.h"
 #include "gn/filesystem_utils.h"
@@ -18,6 +19,8 @@
 #include "gn/xml_element_writer.h"
 
 namespace {
+
+const char kSwitchNinjaExecutable[] = "ninja-executable";
 
 struct SourceFileWriter {
   SourceFileWriter(PathOutput& path_output, const SourceFile& source_file)
@@ -127,7 +130,7 @@ void NinjaCSharpAssemblyTargetWriter::GenerateCSProj(
 
   {
     auto commonPropertyGroup = project.SubElement("PropertyGroup");
-    commonPropertyGroup->SubElement("Platform")->Text("AnyCPU");
+    commonPropertyGroup->SubElement("Platform")->Text("x64");
     commonPropertyGroup->SubElement("RootBuildDir")->Text("$(SolutionDir)");
     commonPropertyGroup->SubElement("ProjectGuid")
         ->Text(target_->csharp_values().project_guid());
@@ -141,8 +144,8 @@ void NinjaCSharpAssemblyTargetWriter::GenerateCSProj(
         ->Text("true");
   }
   {
-    auto propertyGroup = project.SubElement("PropertyGroup");
-    propertyGroup->SubElement("PlatformTarget")->Text("AnyCPU");
+    auto propertyGroup = project.SubElement("PropertyGroup", XmlAttributes("Condition", "'$(Configuration)|$(Platform)' == 'GN|x64'"));
+    propertyGroup->SubElement("PlatformTarget")->Text("x64");
     propertyGroup->SubElement("DebugSymbols")->Text("true");
     propertyGroup->SubElement("Optimize")->Text("false");
     propertyGroup->SubElement("OutputPath")
@@ -247,12 +250,18 @@ void NinjaCSharpAssemblyTargetWriter::GenerateCSProj(
       if (ninja_target.compare(0, 2, "./") == 0) {
         ninja_target = ninja_target.substr(2);
       }
+      const base::CommandLine* command_line =
+          base::CommandLine::ForCurrentProcess();
+      std::string ninja_executable = "ninja.exe";
+      if (command_line->HasSwitch(kSwitchNinjaExecutable))
+        ninja_executable =
+            command_line->GetSwitchValueASCII(kSwitchNinjaExecutable);
       {
         std::unique_ptr<XmlElementWriter> build =
             project.SubElement("Target", XmlAttributes("Name", "Build"));
         build->SubElement(
             "Exec",
-            XmlAttributes("Command", "call ninja.exe -C $(RootBuildDir) " + ninja_target));
+            XmlAttributes("Command", "call " + ninja_executable + " -C $(RootBuildDir) " + ninja_target));
       }
 
       {
@@ -261,7 +270,7 @@ void NinjaCSharpAssemblyTargetWriter::GenerateCSProj(
         clean->SubElement(
             "Exec",
             XmlAttributes("Command",
-                          "call ninja.exe -C $(RootBuildDir) -tclean " + ninja_target));
+                          "call " + ninja_executable + " -C $(RootBuildDir) -tclean " + ninja_target));
       }
   }
 }

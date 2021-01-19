@@ -803,7 +803,7 @@ void VisualStudioWriter::WriteSolutionFileContents(
   for (const std::unique_ptr<SolutionProject>& project : projects_) {
     const std::string project_config_mode =
         config_mode_prefix + project->config_platform;
-    out << "\t\t" << project->guid << '.' << config_mode
+     out << "\t\t" << project->guid << '.' << config_mode
         << ".ActiveCfg = " << project_config_mode << std::endl;
     if (project->name == "default") {
       out << "\t\t" << project->guid << '.' << config_mode
