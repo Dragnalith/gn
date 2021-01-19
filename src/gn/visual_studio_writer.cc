@@ -244,20 +244,22 @@ bool UnicodeTarget(const Target* target) {
 }  // namespace
 
 VisualStudioWriter::SolutionEntry::SolutionEntry(const std::string& _name,
+                                                 const std::string& _toolchain_name,
                                                  const std::string& _path,
                                                  const std::string& _guid)
-    : name(_name), path(_path), guid(_guid), parent_folder(nullptr) {}
+    : name(_name), toolchain_name(_toolchain_name), path(_path), guid(_guid), parent_folder(nullptr) {}
 
 VisualStudioWriter::SolutionEntry::~SolutionEntry() = default;
 
 VisualStudioWriter::SolutionProject::SolutionProject(
     const std::string& _name,
+    const std::string& _toolchain_name,
     const std::string& _path,
     const std::string& _guid,
     const std::string& _label_dir_path,
     const std::string& _config_platform,
     bool is_cs)
-    : SolutionEntry(_name, _path, _guid),
+    : SolutionEntry(_name, _toolchain_name, _path, _guid),
       label_dir_path(_label_dir_path),
       config_platform(_config_platform),
       is_csharp(is_cs) {
@@ -388,9 +390,10 @@ bool VisualStudioWriter::WriteProjectFiles(const Target* target,
                                            const std::string& ninja_executable,
                                            Err* err) {
   std::string project_name = target->label().name();
+  std::string toolchain_name = target->toolchain()->label().name();
   const char* project_config_platform = config_platform_;
   if (!target->settings()->is_default()) {
-    project_name += "_" + target->toolchain()->label().name();
+    project_name += "_" + toolchain_name;
     const Value* value =
         target->settings()->base_config()->GetValue(variables::kCurrentCpu);
     if (value != nullptr && value->string_value() == "x64")
@@ -403,7 +406,7 @@ bool VisualStudioWriter::WriteProjectFiles(const Target* target,
     base::FilePath csproj_path = build_settings_->GetFullPath(target->csharp_values().project_sln_path());
     std::string csproj_path_str = FilePathToUTF8(csproj_path);
     projects_.push_back(std::make_unique<SolutionProject>(
-        project_name, csproj_path_str,
+        project_name, toolchain_name, csproj_path_str,
         target->csharp_values().project_guid(),
         FilePathToUTF8(build_settings_->GetFullPath(target->label().dir())),
         project_config_platform,
@@ -420,7 +423,7 @@ bool VisualStudioWriter::WriteProjectFiles(const Target* target,
   std::string vcxproj_path_str = FilePathToUTF8(vcxproj_path);
 
   projects_.push_back(std::make_unique<SolutionProject>(
-      project_name, vcxproj_path_str,
+      project_name, toolchain_name, vcxproj_path_str,
       MakeGuid(vcxproj_path_str, kGuidSeedProject),
       FilePathToUTF8(build_settings_->GetFullPath(target->label().dir())),
       project_config_platform));
@@ -765,8 +768,12 @@ void VisualStudioWriter::WriteSolutionFileContents(
 
   SourceDir solution_dir(FilePathToUTF8(solution_dir_path));
   for (const std::unique_ptr<SolutionEntry>& folder : folders_) {
-    out << "Project(\"" << kGuidTypeFolder << "\") = \"(" << folder->name
-        << ")\", \"" << RebasePath(folder->path, solution_dir) << "\", \""
+    std::string folder_name = "(" + folder->name + ")";
+    if (folder->path == root_folder_path_) {
+      folder_name = folder->toolchain_name;
+    }
+    out << "Project(\"" << kGuidTypeFolder << "\") = \"" << folder_name
+        << "\", \"" << RebasePath(folder->path, solution_dir) << "\", \""
         << folder->guid << "\"" << std::endl;
     out << "EndProject" << std::endl;
   }
@@ -827,11 +834,13 @@ void VisualStudioWriter::ResolveSolutionFolders() {
   root_folder_path_.clear();
 
   // Get all project directories. Create solution folder for each directory.
-  std::map<std::string_view, SolutionEntry*> processed_paths;
+  std::map<std::string_view, std::map<std::string_view, SolutionEntry*>> multi_processed_paths;
   for (const std::unique_ptr<SolutionProject>& project : projects_) {
     std::string_view folder_path = project->label_dir_path;
     if (IsSlash(folder_path[folder_path.size() - 1]))
       folder_path = folder_path.substr(0, folder_path.size() - 1);
+    std::string_view toolchain_view = project->toolchain_name;
+    std::map<std::string_view, SolutionEntry*>& processed_paths = multi_processed_paths[toolchain_view];
     auto it = processed_paths.find(folder_path);
     if (it != processed_paths.end()) {
       project->parent_folder = it->second;
@@ -840,7 +849,9 @@ void VisualStudioWriter::ResolveSolutionFolders() {
       std::unique_ptr<SolutionEntry> folder = std::make_unique<SolutionEntry>(
           std::string(
               FindLastDirComponent(SourceDir(std::string(folder_path)))),
-          folder_path_str, MakeGuid(folder_path_str, kGuidSeedFolder));
+          project->toolchain_name,
+          folder_path_str, MakeGuid(project->toolchain_name + "_" + folder_path_str, kGuidSeedFolder));
+
       project->parent_folder = folder.get();
       processed_paths[folder_path] = folder.get();
       folders_.push_back(std::move(folder));
@@ -876,9 +887,14 @@ void VisualStudioWriter::ResolveSolutionFolders() {
     if (solution_folder->path == root_folder_path_)
       continue;
 
+    std::string_view toolchain_view = solution_folder->toolchain_name;
+
+    std::map<std::string_view, SolutionEntry*>& processed_paths = multi_processed_paths[solution_folder->toolchain_name];
+
+
     SolutionEntry* folder = solution_folder.get();
-    std::string_view parent_path;
-    while ((parent_path = FindParentDir(&folder->path)) != root_folder_path_) {
+    std::string_view parent_path = FindParentDir(&folder->path);
+    while (true) {
       auto it = processed_paths.find(parent_path);
       if (it != processed_paths.end()) {
         folder = it->second;
@@ -887,12 +903,18 @@ void VisualStudioWriter::ResolveSolutionFolders() {
             std::make_unique<SolutionEntry>(
                 std::string(
                     FindLastDirComponent(SourceDir(std::string(parent_path)))),
+                folder->toolchain_name,
                 std::string(parent_path),
-                MakeGuid(std::string(parent_path), kGuidSeedFolder));
+                MakeGuid(folder->toolchain_name + " " + std::string(parent_path), kGuidSeedFolder));
         processed_paths[parent_path] = new_folder.get();
         folder = new_folder.get();
         additional_folders.push_back(std::move(new_folder));
       }
+
+      if (parent_path == root_folder_path_) {
+          break;
+      }
+      parent_path = FindParentDir(&folder->path);
     }
   }
   folders_.insert(folders_.end(),
@@ -903,6 +925,9 @@ void VisualStudioWriter::ResolveSolutionFolders() {
   std::sort(folders_.begin(), folders_.end(),
             [](const std::unique_ptr<SolutionEntry>& a,
                const std::unique_ptr<SolutionEntry>& b) {
+              if ( a->toolchain_name != b->toolchain_name) {
+                return a->toolchain_name < b->toolchain_name;
+              }
               return a->path < b->path;
             });
 
@@ -912,7 +937,7 @@ void VisualStudioWriter::ResolveSolutionFolders() {
   for (const std::unique_ptr<SolutionEntry>& folder : folders_) {
     while (!parents.empty()) {
       if (base::StartsWith(folder->path, parents.back()->path,
-                           base::CompareCase::SENSITIVE)) {
+                           base::CompareCase::SENSITIVE) && (folder->toolchain_name == parents.back()->toolchain_name)) {
         folder->parent_folder = parents.back();
         break;
       } else {

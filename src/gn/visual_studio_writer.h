@@ -60,12 +60,15 @@ class VisualStudioWriter {
   // Solution project or folder.
   struct SolutionEntry {
     SolutionEntry(const std::string& name,
+                  const std::string& toolchain_name,
                   const std::string& path,
                   const std::string& guid);
     virtual ~SolutionEntry();
 
     // Entry name. For projects must be unique in the solution.
     std::string name;
+
+    std::string toolchain_name;
     // Absolute project file or folder directory path.
     std::string path;
     // GUID-like string.
@@ -76,6 +79,7 @@ class VisualStudioWriter {
 
   struct SolutionProject : public SolutionEntry {
     SolutionProject(const std::string& name,
+                    const std::string& toolchain_name,
                     const std::string& path,
                     const std::string& guid,
                     const std::string& label_dir_path,
