@@ -154,6 +154,7 @@ void NinjaCSharpAssemblyTargetWriter::GenerateCSProj(
     propertyGroup->SubElement("DefineConstants")->Text("DEBUG;TRACE");
     propertyGroup->SubElement("ErrorReport")->Text("prompt");
     propertyGroup->SubElement("WarningLevel")->Text("4");
+    propertyGroup->SubElement("XamlDebuggingInformation")->Text("True");
   }
   {
     auto itemGroup = project.SubElement("ItemGroup");
