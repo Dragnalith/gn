@@ -142,6 +142,7 @@ void NinjaCSharpAssemblyTargetWriter::GenerateCSProj(
     commonPropertyGroup->SubElement("FileAlignment")->Text("512");
     commonPropertyGroup->SubElement("AutoGenerateBindingRedirects")
         ->Text("true");
+    commonPropertyGroup->SubElement("DisableFastUpToDateCheck")->Text("true");
   }
   {
     auto propertyGroup = project.SubElement("PropertyGroup", XmlAttributes("Condition", "'$(Configuration)|$(Platform)' == 'GN|x64'"));
