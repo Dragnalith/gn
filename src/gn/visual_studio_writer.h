@@ -12,6 +12,7 @@
 
 #include "base/gtest_prod_util.h"
 #include "base/macros.h"
+#include "gn/target.h"
 #include "gn/path_output.h"
 
 namespace base {
@@ -84,14 +85,14 @@ class VisualStudioWriter {
                     const std::string& guid,
                     const std::string& label_dir_path,
                     const std::string& config_platform,
-                    bool is_csharp = false);
+                    Target::OutputType type);
     ~SolutionProject() override;
 
     // Absolute label dir path.
     std::string label_dir_path;
     // Configuration platform. May be different than solution config platform.
     std::string config_platform;
-    bool is_csharp;
+    Target::OutputType output_type;
   };
 
   struct SourceFileCompileTypePair {

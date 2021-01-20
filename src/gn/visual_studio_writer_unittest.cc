@@ -38,25 +38,25 @@ TEST_F(VisualStudioWriterTest, ResolveSolutionFolders) {
   writer.projects_.push_back(
       std::make_unique<VisualStudioWriter::SolutionProject>(
           "base", "toolchain", path, MakeGuid(path, "project"),
-          MakeTestPath("/foo/chromium/src/base"), "Win32"));
+          MakeTestPath("/foo/chromium/src/base"), "Win32", Target::EXECUTABLE));
 
   path = MakeTestPath("/foo/chromium/src/out/Debug/obj/tools/gn/gn.vcxproj");
   writer.projects_.push_back(
       std::make_unique<VisualStudioWriter::SolutionProject>(
           "gn", "toolchain", path, MakeGuid(path, "project"),
-          MakeTestPath("/foo/chromium/src/tools/gn"), "Win32"));
+          MakeTestPath("/foo/chromium/src/tools/gn"), "Win32", Target::EXECUTABLE));
 
   path = MakeTestPath("/foo/chromium/src/out/Debug/obj/chrome/chrome.vcxproj");
   writer.projects_.push_back(
       std::make_unique<VisualStudioWriter::SolutionProject>(
           "chrome", "toolchain", path, MakeGuid(path, "project"),
-          MakeTestPath("/foo/chromium/src/chrome"), "Win32"));
+          MakeTestPath("/foo/chromium/src/chrome"), "Win32", Target::EXECUTABLE));
 
   path = MakeTestPath("/foo/chromium/src/out/Debug/obj/base/bar.vcxproj");
   writer.projects_.push_back(
       std::make_unique<VisualStudioWriter::SolutionProject>(
           "bar", "toolchain", path, MakeGuid(path, "project"),
-          MakeTestPath("/foo/chromium/src/base"), "Win32"));
+          MakeTestPath("/foo/chromium/src/base"), "Win32", Target::EXECUTABLE));
 
   writer.ResolveSolutionFolders();
 
@@ -97,21 +97,20 @@ TEST_F(VisualStudioWriterTest, ResolveSolutionFolders_AbsPath) {
   writer.projects_.push_back(
       std::make_unique<VisualStudioWriter::SolutionProject>(
           "base", "toolchain", path, MakeGuid(path, "project"),
-          MakeTestPath("/foo/chromium/src/base"), "Win32"));
+          MakeTestPath("/foo/chromium/src/base"), "Win32", Target::EXECUTABLE));
 
   path = MakeTestPath("/foo/chromium/src/out/Debug/obj/tools/gn/gn.vcxproj");
   writer.projects_.push_back(
       std::make_unique<VisualStudioWriter::SolutionProject>(
           "gn", "toolchain", path, MakeGuid(path, "project"),
-          MakeTestPath("/foo/chromium/src/tools/gn"), "Win32"));
+          MakeTestPath("/foo/chromium/src/tools/gn"), "Win32", Target::EXECUTABLE));
 
   path = MakeTestPath(
       "/foo/chromium/src/out/Debug/obj/ABS_PATH/C/foo/bar/bar.vcxproj");
   writer.projects_.push_back(
       std::make_unique<VisualStudioWriter::SolutionProject>(
           "bar", "toolchain", path, MakeGuid(path, "project"),
-          MakeTestPath("/foo/bar"),
-          "Win32"));
+          MakeTestPath("/foo/bar"), "Win32", Target::EXECUTABLE));
 
   std::string baz_label_dir_path = MakeTestPath("/foo/bar/baz");
 #if defined(OS_WIN)
@@ -123,7 +122,7 @@ TEST_F(VisualStudioWriterTest, ResolveSolutionFolders_AbsPath) {
   writer.projects_.push_back(
       std::make_unique<VisualStudioWriter::SolutionProject>(
           "baz", "toolchain", path, MakeGuid(path, "project"),
-          baz_label_dir_path, "Win32"));
+          baz_label_dir_path, "Win32", Target::EXECUTABLE));
 
   writer.ResolveSolutionFolders();
 
@@ -175,8 +174,7 @@ TEST_F(VisualStudioWriterTest, NoDotSlash) {
   writer.projects_.push_back(
       std::make_unique<VisualStudioWriter::SolutionProject>(
           "base", "toolchain", path, MakeGuid(path, "project"),
-          MakeTestPath("/foo"),
-          "Win32"));
+          MakeTestPath("/foo"), "Win32", Target::EXECUTABLE));
 
   std::unique_ptr<Tool> tool = Tool::CreateTool(CTool::kCToolAlink);
   tool->set_outputs(SubstitutionList::MakeForTest(

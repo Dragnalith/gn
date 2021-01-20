@@ -258,11 +258,11 @@ VisualStudioWriter::SolutionProject::SolutionProject(
     const std::string& _guid,
     const std::string& _label_dir_path,
     const std::string& _config_platform,
-    bool is_cs)
+    Target::OutputType _type)
     : SolutionEntry(_name, _toolchain_name, _path, _guid),
       label_dir_path(_label_dir_path),
       config_platform(_config_platform),
-      is_csharp(is_cs) {
+      output_type(_type) {
   // Make sure all paths use the same drive letter case. This is especially
   // important when searching for the common path prefix.
   label_dir_path[0] = base::ToUpperASCII(label_dir_path[0]);
@@ -389,11 +389,11 @@ bool VisualStudioWriter::WriteProjectFiles(const Target* target,
                                            const std::string& ninja_extra_args,
                                            const std::string& ninja_executable,
                                            Err* err) {
-  std::string project_name = target->label().name();
+  std::string project_filename = target->label().name();
   std::string toolchain_name = target->toolchain()->label().name();
   const char* project_config_platform = config_platform_;
   if (!target->settings()->is_default()) {
-    //project_name += "_" + toolchain_name;
+    //project_filename += "_" + toolchain_name;
     const Value* value =
         target->settings()->base_config()->GetValue(variables::kCurrentCpu);
     if (value != nullptr && value->string_value() == "x64")
@@ -401,7 +401,10 @@ bool VisualStudioWriter::WriteProjectFiles(const Target* target,
     else
       project_config_platform = "Win32";
   }
-
+  std::string project_name = project_filename;
+  if (target->output_type() == Target::GROUP) {
+    project_name = "(" + project_name + ")";
+  }
   if (target->output_type() == Target::CSHARP_ASSEMBLY) {
     base::FilePath csproj_path = build_settings_->GetFullPath(target->csharp_values().project_sln_path());
     std::string csproj_path_str = FilePathToUTF8(csproj_path);
@@ -410,7 +413,7 @@ bool VisualStudioWriter::WriteProjectFiles(const Target* target,
         target->csharp_values().project_guid(),
         FilePathToUTF8(build_settings_->GetFullPath(target->label().dir())),
         project_config_platform,
-        true));
+        target->output_type()));
     return true;
   }
   SourceFile target_file =
@@ -426,7 +429,8 @@ bool VisualStudioWriter::WriteProjectFiles(const Target* target,
       project_name, toolchain_name, vcxproj_path_str,
       MakeGuid(vcxproj_path_str, kGuidSeedProject),
       FilePathToUTF8(build_settings_->GetFullPath(target->label().dir())),
-      project_config_platform));
+      project_config_platform,
+      target->output_type()));
 
   std::stringstream vcxproj_string_out;
   SourceFileCompileTypePairs source_types;
@@ -779,7 +783,7 @@ void VisualStudioWriter::WriteSolutionFileContents(
   }
 
   for (const std::unique_ptr<SolutionProject>& project : projects_) {
-    if (project->is_csharp) {
+    if (project->output_type == Target::CSHARP_ASSEMBLY) {
       out << "Project(\"" << kGuidTypeCSharpProject << "\") = \"" << project->name;
     } else {
       out << "Project(\"" << kGuidTypeProject << "\") = \"" << project->name;
@@ -805,10 +809,8 @@ void VisualStudioWriter::WriteSolutionFileContents(
         config_mode_prefix + project->config_platform;
      out << "\t\t" << project->guid << '.' << config_mode
         << ".ActiveCfg = " << project_config_mode << std::endl;
-    if (project->name == "default") {
-      out << "\t\t" << project->guid << '.' << config_mode
+     out << "\t\t" << project->guid << '.' << config_mode
           << ".Build.0 = " << project_config_mode << std::endl;
-    }
   }
   out << "\tEndGlobalSection" << std::endl;
 
