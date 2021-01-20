@@ -826,8 +826,10 @@ void VisualStudioWriter::WriteSolutionFileContents(
     }
   }
   for (const std::unique_ptr<SolutionProject>& project : projects_) {
-    out << "\t\t" << project->guid << " = " << project->parent_folder->guid
-        << std::endl;
+    if (project->parent_folder) {
+      out << "\t\t" << project->guid << " = " << project->parent_folder->guid
+          << std::endl;
+    }
   }
   out << "\tEndGlobalSection" << std::endl;
 
@@ -856,7 +858,9 @@ void VisualStudioWriter::ResolveSolutionFolders() {
           project->toolchain_name,
           folder_path_str, MakeGuid(project->toolchain_name + "_" + folder_path_str, kGuidSeedFolder));
 
-      project->parent_folder = folder.get();
+      if (project->name != "(default)") {
+        project->parent_folder = folder.get();
+      }
       processed_paths[folder_path] = folder.get();
       folders_.push_back(std::move(folder));
 

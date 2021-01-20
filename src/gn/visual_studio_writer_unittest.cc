@@ -62,7 +62,7 @@ TEST_F(VisualStudioWriterTest, ResolveSolutionFolders) {
 
   ASSERT_EQ(MakeTestPath("/foo/chromium/src"), writer.root_folder_path_);
 
-  ASSERT_EQ(4u, writer.folders_.size());
+  ASSERT_EQ(5u, writer.folders_.size());
 
   ASSERT_EQ("base", writer.folders_[0]->name);
   ASSERT_EQ(MakeTestPath("/foo/chromium/src/base"), writer.folders_[0]->path);
